@@ -1,2 +1,2 @@
-# finance-tracker-
+# finance-tracker
 finance tracker with AI
