@@ -1,0 +1,14 @@
+{
+  "scenario_name": "Одобрение финансовой транзакции",
+  "thresholds": {
+    "min_amount": 10,
+    "max_amount": 100000
+  },
+  "lists": {
+    "whitelist": ["groceries", "utilities", "transfer", "subscription"],
+    "blacklist": ["gambling", "crypto_speculation", "unlicensed"]
+  },
+  "critical_rules": {
+    "must_be_verified": true
+  }
+}
