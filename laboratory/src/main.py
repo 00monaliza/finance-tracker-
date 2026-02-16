@@ -1,63 +1,35 @@
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import streamlit as st
-from mock_data import test_entity as default_data
-from logic import check_rules
+from logic import process_text_message
 
-st.set_page_config(page_title="Rule-Based System Debugger", page_icon="🛠")
-st.title("Rule-Based System Debugger 🛠")
-st.caption("Лабораторная работа №2: продукционная модель и база знаний")
+import networkx as nx
+import os
 
-st.write("### Настройка входящих данных (транзакция)")
+def load_graph():
+    G = nx.Graph()
+    G.add_node("python")
+    G.add_node("кашель")
+    G.add_node("алматы")
+    G.add_edge("python", "программирование")
+    G.add_edge("кашель", "простуда")
+    G.add_edge("алматы", "казахстан")
+    return G
 
-# Сайдбар: поля ввода на основе Mock Data
-with st.sidebar:
-    st.header("Параметры транзакции")
-    user_amount = st.number_input(
-        "Сумма (₽):",
-        min_value=0,
-        value=default_data["amount"],
-        step=100,
-    )
-    user_verified = st.checkbox(
-        "Транзакция подтверждена (2FA)",
-        value=default_data["is_verified"],
-    )
-    all_categories = list(
-        set(
-            default_data["categories"]
-            + ["gambling", "crypto_speculation", "unlicensed", "subscription"]
-        )
-    )
-    user_categories = st.multiselect(
-        "Категории:",
-        options=all_categories,
-        default=default_data["categories"],
-    )
-    user_type = st.text_input(
-        "Тип операции:",
-        value=default_data["transaction_type"],
-    )
+st.title("AI Assistant")
 
-if st.button("Запустить проверку"):
-    current_test_data = {
-        "transaction_type": user_type,
-        "amount": user_amount,
-        "categories": user_categories if user_categories else default_data["categories"],
-        "is_verified": user_verified,
-    }
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-    result = check_rules(current_test_data)
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-    if "✅" in result:
-        st.success(result)
-    elif "⛔️" in result:
-        st.error(result)
-    else:
-        st.warning(result)
-
-st.sidebar.divider()
-st.sidebar.write("Правила загружаются из `data/raw/rules.json`")
+if user_input := st.chat_input("Введите ваш запрос..."):
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.markdown(user_input)
+    graph = load_graph()
+    bot_response = process_text_message(user_input, graph)
+    st.session_state.messages.append({"role": "assistant", "content": bot_response})
+    with st.chat_message("assistant"):
+        st.markdown(bot_response)

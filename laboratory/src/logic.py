@@ -1,3 +1,18 @@
+def process_text_message(text, data_source):
+    """
+    Принимает текст пользователя, ищет ключевые слова в базе/графе
+    и возвращает ответ.
+    """
+    text = text.lower()
+
+    if data_source and hasattr(data_source, 'nodes') and text in data_source.nodes:
+        neighbors = list(data_source.neighbors(text))
+        return f"Я нашел '{text}' в базе! С этим связано: {', '.join(neighbors)}"
+
+    if "привет" in text:
+        return "Привет! Я готов помочь. Напиши название объекта."
+
+    return "Я не понимаю. Попробуйте ввести точное название (например, 'Python' или 'Кашель')."
 import json
 import os
 
@@ -20,11 +35,8 @@ def check_rules(data):
     lists_config = rules["lists"]
     critical = rules["critical_rules"]
 
-    # --- 1. HARD FILTERS (Критические проверки) ---
     if critical.get("must_be_verified") and not data.get("is_verified"):
         return "Критическая ошибка: Транзакция не подтверждена (требуется 2FA)"
-
-    # --- 2. БИЗНЕС-ЛОГИКА (Сравнение с порогами и списками) ---
 
     amount = data.get("amount", 0)
     min_amount = thresholds.get("min_value", thresholds.get("min_amount", 0))
